@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+} from "react-native";
 
 export default function HomeScreen({ navigation }) {
   const [title, setTitle] = useState("");
@@ -16,7 +23,7 @@ export default function HomeScreen({ navigation }) {
 
   // Delete Note
   const deleteNote = (id) => {
-    setNotes(notes.filter(n => n.id !== id));
+    setNotes(notes.filter((n) => n.id !== id));
   };
 
   return (
@@ -24,7 +31,10 @@ export default function HomeScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.heading}>📒 My Notes</Text>
-        <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.replace("Login")}>
+        <TouchableOpacity
+          style={styles.logoutBtn}
+          onPress={() => navigation.replace("Login")}
+        >
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
@@ -75,14 +85,46 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f8f9fa" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   heading: { fontSize: 24, fontWeight: "bold" },
-  logoutBtn: { backgroundColor: "red", paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8 },
+  logoutBtn: {
+    backgroundColor: "red",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
   logoutText: { color: "#fff", fontWeight: "bold" },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 8, backgroundColor: "#fff", marginBottom: 10 },
-  addBtn: { backgroundColor: "#007bff", padding: 12, borderRadius: 8, alignItems: "center", marginBottom: 20 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
+  addBtn: {
+    backgroundColor: "#007bff",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 20,
+  },
   addBtnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-  noteCard: { flexDirection: "row", backgroundColor: "#fff", padding: 15, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: "#ddd", alignItems: "center" },
+  noteCard: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    alignItems: "center",
+  },
   noteTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
   noteMessage: { fontSize: 15, color: "#555" },
   deleteText: { fontSize: 18, color: "red", marginLeft: 10 },
