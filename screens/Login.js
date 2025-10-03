@@ -35,7 +35,13 @@ export default function LoginScreen({ navigation }) {
 
       if (result.response.success) {
         Alert.alert("Success", "Login successful!");
-        navigation.replace("Home");
+      
+        // get user from backend response
+        const user = result.user;
+
+        navigation.replace("Home", {
+          currentUser: user, // pass full user object
+        });
       } else {
         Alert.alert("Login Failed", result.content || "Invalid credentials");
       }

@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+
+const PUBLIC_URL = "http://192.168.226.1:8080/Dailyworks";
 
 export default function RegisterScreen({ navigation }) {
   const [fullName, setFullName] = useState("");
@@ -32,19 +35,50 @@ export default function RegisterScreen({ navigation }) {
     });
 
     if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
+      setProfileImage(result.assets[0]);
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!fullName || !username || !email || !password) {
-      return alert("Fill all fields");
+      Alert.alert("Error", "Fill all fields");
+      return;
     }
-    if (!profileImage) return alert("Please select a profile image");
+    if (!profileImage) {
+      Alert.alert("Error", "Please select a profile image");
+      return;
+    }
 
-    // 🔹 Temporary: after register, go to Login
-    alert("Registered successfully!");
-    navigation.replace("Login");
+    const formData = new FormData();
+    formData.append("fullName", fullName);
+    formData.append("username", username);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("profileImage", {
+      uri: profileImage.uri, // fixed ✅
+      type: "image/*",
+      name: `profile_${Date.now()}.jpg`,
+    });
+
+    try {
+      const response = await fetch(`${PUBLIC_URL}/RegisterServlet`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+      console.log(result);
+
+      if (result.response?.success) {
+        Alert.alert("Success", "Registered successfully!");
+        navigation.replace("Login");
+      } else {
+        Alert.alert("Failed", result.response?.content || "Unknown error");
+      }
+    } catch (error) {
+      console.error("❌ Register Error:", error);
+      Alert.alert("Error", "Something went wrong");
+    }
   };
 
   return (
@@ -54,7 +88,10 @@ export default function RegisterScreen({ navigation }) {
       {/* Profile Image Picker */}
       <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
         {profileImage ? (
-          <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          <Image
+            source={{ uri: profileImage.uri }}
+            style={styles.profileImage}
+          />
         ) : (
           <Text style={{ color: "#555" }}>Pick Profile Image</Text>
         )}

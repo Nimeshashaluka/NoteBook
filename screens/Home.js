@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,24 +6,106 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Alert,
 } from "react-native";
 
-export default function HomeScreen({ navigation }) {
+const PUBLIC_URL = "http://192.168.226.1:8080/Dailyworks";
+
+export default function HomeScreen({ navigation, route }) {
+  const { currentUser } = route.params; // user object from login
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [notes, setNotes] = useState([]);
 
+  // Fetch notes from backend
+  const fetchNotes = async () => {
+    try {
+      const response = await fetch(
+        `${PUBLIC_URL}/GetNotesServlet?userId=${currentUser.id}`
+      );
+      const result = await response.json();
+      if (result.response.success) {
+        setNotes(result.notes || []);
+      } else {
+        Alert.alert("Error", result.response.content);
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to fetch notes from server");
+    }
+  };
+
+  useEffect(() => {
+    fetchNotes(); // load notes on component mount
+  }, []);
+
   // Add Note
-  const addNote = () => {
-    if (title.trim() === "" || message.trim() === "") return;
-    setNotes([...notes, { id: Date.now().toString(), title, message }]);
-    setTitle("");
-    setMessage("");
+  const addNote = async () => {
+    if (!title.trim() || !message.trim()) {
+      Alert.alert("Error", "Title and message cannot be empty");
+      return;
+    }
+
+    // const formData = new FormData();
+    // formData.append("userId", currentUser.id); // use currentUser.id
+    // formData.append("title", title);
+    // formData.append("message", message);
+
+    console.log("Adding note with data:", {
+      userId: currentUser.id,
+      title,
+      message,
+    });
+
+    try {
+      const response = await fetch(`${PUBLIC_URL}/AddNoteServlet`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          title,
+          message,
+        }),
+      });
+      const result = await response.json();
+
+      if (result.response.success) {
+        fetchNotes(); // reload notes from server
+        setTitle("");
+        setMessage("");
+      } else {
+        Alert.alert("Failed", result.response.content);
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Server error while adding note");
+    }
   };
 
   // Delete Note
-  const deleteNote = (id) => {
-    setNotes(notes.filter((n) => n.id !== id));
+  const deleteNote = async (noteId) => {
+    // const formData = new FormData();
+    // formData.append("noteId", noteId);
+
+    try {
+      const response = await fetch(`${PUBLIC_URL}/DeleteNoteServlet`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteId }),
+      });
+      const result = await response.json();
+
+      if (result.response.success) {
+        // remove from local state
+        setNotes(notes.filter((n) => n.id !== noteId));
+        Alert.alert("Success", "Note deleted");
+      } else {
+        Alert.alert("Failed", result.response.content);
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Server error while deleting note");
+    }
   };
 
   return (
@@ -31,6 +113,7 @@ export default function HomeScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.heading}>📒 My Notes</Text>
+        <Text style={{ color: "#666" }}>Welcome, {currentUser.full_name}</Text>
         <TouchableOpacity
           style={styles.logoutBtn}
           onPress={() => navigation.replace("Login")}
@@ -61,7 +144,7 @@ export default function HomeScreen({ navigation }) {
       {/* Notes List */}
       <FlatList
         data={notes}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.noteCard}>
             <View style={{ flex: 1 }}>
